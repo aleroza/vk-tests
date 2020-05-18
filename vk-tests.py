@@ -1,5 +1,7 @@
 import vk
+import csv
 
+# from google_export import main_export
 # v -- версия API VK
 #
 # APP_ID -- номер приложения разработчика (меню "Управление")
@@ -27,7 +29,7 @@ def main():
     print("Q: У него в сумке лежали учебники для сегодняшних уроков, обед и...")
     target_q = str(input("Введите любой вопрос из теста, который нужно проверить: "))
     print("Вытаскиваем ворох сообщений")
-    data, offset = taking_msgs(vkapi, nums["iter_num"], 20, offset, data, target_q)
+    data, offset = taking_msgs(vkapi, nums["iter_num"], 200, offset, data, target_q)
     data, offset = taking_msgs(vkapi, 1, nums["plus_iter_num"], offset, data, target_q)
     print("Ответов на тест --", len(data))
     print("Сортируем результаты")
@@ -37,7 +39,18 @@ def main():
     print("Ответов после обработки --", len(data))
 
     print("Сохраняем в файл")
-    save_to_file(data)
+    k = int(input(
+        "Выберите способ вывода:\n1) *.TXT-файл\n2) *.CSV-файл\n3) Экспорт в сводную таблицу Google (не реализовано)\n"))
+    if k == 1:
+        save_to_txt(data)
+    elif k == 2:
+        save_to_csv(data)
+    elif k == 3:
+        # save_to_google(data)
+        print("Брысь отсюда")
+        # main_export()
+    else:
+        print("Что-то не то ввел.")
 
 
 def login():
@@ -49,8 +62,9 @@ def taking_num_of_msgs(vkapi):
     num_of_msgs = vkapi.messages.getHistory(group_id=GROUP_ID, start_message_id=-1, peer_id=ADMIN_ID, user_id=ADMIN_ID,
                                             count=1,
                                             offset=0)
-    iter_num = num_of_msgs["count"] // 20
-    plus_iter_num = num_of_msgs["count"] % 20
+    print(num_of_msgs)
+    iter_num = num_of_msgs["count"] // 200
+    plus_iter_num = num_of_msgs["count"] % 200
     return {"iter_num": iter_num, "plus_iter_num": plus_iter_num}
 
 
@@ -66,21 +80,27 @@ def taking_msgs(vkapi, iter_num, count, offset, data, target_q):
         # Определяем индексы начала и конца нужных нам данных, делаем срезы
         while k <= count - 1:
             msg_item = msg_items[k]
-            msg = msg_item["text"]
+            print(k)
+            if msg_item["out"] == 1:
+                msg = msg_item["text"]
 
-            name_start_index = 20
-            name_end_index = msg.find(" vk.com/")
-            id_start_index = msg.find("/id")
-            id_end_index = msg.find("Диалог") - 1
-            score_start_index = msg.find("Набрано баллов ") + 15
-            score_end_index = msg.find("Q: ") - 2
+                name_start_index = 20
+                name_end_index = msg.find(" vk.com/")
+                id_start_index = msg.find("/id") + 1
+                id_end_index = msg.find("Диалог") - 1
+                score_start_index = msg.find("Набрано баллов ") + 15
+                score_end_index = msg.find(" из ")
 
-            name = msg[name_start_index:name_end_index]
-            id_ = msg[id_start_index:id_end_index]
-            score = msg[score_start_index:score_end_index]
-            if target_q in msg:
-                data.append([name, id_, score])
-            k += 1
+                name = msg[name_start_index:name_end_index]
+                id_ = msg[id_start_index:id_end_index]
+                score = msg[score_start_index:score_end_index]
+                # print(score)
+                # score=int(score)
+                if target_q in msg:
+                    data.append([name, id_, score])
+                k += 1
+            else:
+                k += 1
         offset += count
     return data, offset
 
@@ -132,22 +152,26 @@ def checking_results(data):
     return data
 
 
-def save_to_file(data):
-    file = open("test-results.txt", "w")
-    for item in data:
-        k = 1
-        score_len = 6
-        for sub_item in item:
-            if k == 1:
-                file.write("| " + sub_item.ljust(25, " ") + " | ")
-            elif k == 2:
-                file.write(sub_item.ljust(13, " ") + " | ")
-            else:
-                if len(sub_item) > 6:
-                    score_len = 12
-                file.write(sub_item.ljust(score_len, " ") + " |\n")
-            k += 1
-    file.close()
+def save_to_txt(data):
+    with open("test-results.txt", "w") as file:
+        for item in data:
+            k = 1
+            for sub_item in item:
+                if k == 1:
+                    file.write("| " + sub_item.ljust(25, " ") + " | ")
+                elif k == 2:
+                    file.write(sub_item.ljust(13, " ") + " | ")
+                else:
+                    file.write(sub_item.ljust(4, " ") + " |\n")
+                k += 1
+
+
+def save_to_csv(data):
+    with open("test-results.csv", "w") as file:
+        write_file = csv.writer(file, dialect="excel")
+
+        for item in data:
+            write_file.writerow(item)
 
 
 if __name__ == "__main__":
