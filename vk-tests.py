@@ -1,19 +1,26 @@
 import vk
 import csv
-
+import json
 # from google_export import main_export
+
 # v -- версия API VK
-#
-# APP_ID -- номер приложения разработчика (меню "Управление")
 # GROUP_ID -- айдишник группы
 # TOKEN -- токен доступа группы
 # ADMIN_ID -- айдишник админа, которому присылаются ответы
 
+# vk-auth.json вида:
+# {
+# "GROUP_ID": "",
+# "TOKEN": "",
+# "ADMIN_ID": ""
+# }
+
 v = 5.103
-APP_ID = 0
-GROUP_ID = 43340456
-TOKEN = ""
-ADMIN_ID = 0
+with open("vk-auth.json") as vkcredsfile:
+    vkcreds = json.load(vkcredsfile)
+GROUP_ID = vkcreds["GROUP_ID"]
+TOKEN = vkcreds["TOKEN"]
+ADMIN_ID = vkcreds["ADMIN_ID"]
 
 
 def main():
@@ -40,7 +47,7 @@ def main():
 
     print("Сохраняем в файл")
     k = int(input(
-        "Выберите способ вывода:\n1) *.TXT-файл\n2) *.CSV-файл\n3) Экспорт в сводную таблицу Google (не реализовано)\n"))
+        "Выберите способ вывода:\n1) *.TXT-файл\n2) *.CSV-файл\n3) Экспорт в сводную таблицу Google (not impl)\n"))
     if k == 1:
         save_to_txt(data)
     elif k == 2:
@@ -69,7 +76,7 @@ def taking_num_of_msgs(vkapi):
 
 
 def taking_msgs(vkapi, iter_num, count, offset, data, target_q):
-    for i in range(iter_num):
+    for _ in range(iter_num):
         messages = vkapi.messages.getHistory(group_id=GROUP_ID, start_message_id=-1, peer_id=ADMIN_ID,
                                              user_id=ADMIN_ID,
                                              count=count,
