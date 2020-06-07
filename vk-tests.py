@@ -1,6 +1,8 @@
-import vk
 import csv
 import json
+
+import vk
+
 # from google_export import main_export
 
 # v -- версия API VK
