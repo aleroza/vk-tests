@@ -5,7 +5,7 @@ from os import path
 import gspread
 import vk
 from PyQt5 import QtGui
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, QObject, pyqtSignal, QEventLoop
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
@@ -23,14 +23,20 @@ class Window(QMainWindow):
         self.vkdialog = VKauthWindow()
         self.VKauthExists = False
         self.vkauth = {}
-        self.targetQ=""
+        self.targetQ = ""
         self.data = []
         self.nums = {}
 
+        # Centering window
+        # From https://pythonprogramminglanguage.com/pyqt5-center-window/
         qtRectangle = self.frameGeometry()
         centerPoint = QDesktopWidget().availableGeometry().center()
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
+
+        self._stdout = StdoutRedirect()
+        self._stdout.start()
+        self._stdout.printOccur.connect(lambda x: self._append_text(x))
 
     def SaveBtn_clicked(self):
         print("lol")
@@ -45,15 +51,14 @@ class Window(QMainWindow):
             self.saveBtn.setEnabled(True)
 
     def StartBtn_clicked(self):
+        self.consoleOut.setEnabled(True)
         self.data = []
-        print(self.targetQ)
         self.data = vktests.all_for_msgs(self.vkapi, self.data, self.targetQ, self.vkauth["ADMIN_ID"])
-        if len(self.data)==0:
+        if len(self.data) == 0:
             print("По запросу не найдено результатов")
             self.outputBox.setEnabled(False)
         else:
             self.outputBox.setEnabled(True)
-
 
     def VKauthExists_get(self):
         return self.VKauthExists
@@ -82,7 +87,7 @@ class Window(QMainWindow):
             self.GauthLabel.setText("Файл аутентификации Google принят")
             self.GauthIco.setPixmap(QtGui.QPixmap("ico/tick.png"))
             self.googleCheck.setEnabled(True)
-        except (Exception):
+        except Exception:
             self.GauthLabel.setText("Файл аутентификации Google не принят")
             self.GauthIco.setPixmap(QtGui.QPixmap("ico/question.png"))
             self.googleCheck.setEnabled(False)
@@ -134,8 +139,34 @@ class Window(QMainWindow):
                 self.VKauthLabel.setText("Файл аутентификации VK не принят")
                 self.VKauthBtn.setText("Изменить")
 
+    def _append_text(self, msg):
+        self.consoleOut.moveCursor(QtGui.QTextCursor.End)
+        self.consoleOut.insertPlainText(msg)
+        # refresh textedit show, refer) https://doc.qt.io/qt-5/qeventloop.html#ProcessEventsFlag-enum
+        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
 
+# Redirecting stdout/stderr output to QEditLine
+# From https://4uwingnet.tistory.com/9
+class StdoutRedirect(QObject):
+    printOccur = pyqtSignal(str, str, name="print")
 
+    def __init__(self, *param):
+        QObject.__init__(self, None)
+        self.daemon = True
+        self.sysstdout = sys.stdout.write
+        self.sysstderr = sys.stderr.write
+
+    def stop(self):
+        sys.stdout.write = self.sysstdout
+        sys.stderr.write = self.sysstderr
+
+    def start(self):
+        sys.stdout.write = self.write
+        sys.stderr.write = lambda msg: self.write(msg, color="red")
+
+    def write(self, s, color="black"):
+        sys.stdout.flush()
+        self.printOccur.emit(s, color)
 
 
 # Dialog for vk-auth.json file generating
@@ -150,7 +181,7 @@ class VKauthWindow(QDialog):
 
     def load(self):
         VKauthExists = Window.VKauthExists_get(myWindow)
-        if VKauthExists == False:
+        if not VKauthExists:
             self.OKBtn.setEnabled(False)
         else:
             self.tokenLine.setText(Window.vkauth_get(myWindow)["TOKEN"])
