@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>VkauthForm</class>
+ <widget class="QDialog" name="VkauthForm">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>336</width>
+    <height>126</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Файл vk-auth.json</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="tokenLabel">
+       <property name="font">
+        <font>
+         <family>Droid Sans [MONO]</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Токен Группы</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="adminLabel">
+       <property name="font">
+        <font>
+         <family>Droid Sans [MONO]</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>ID Админа</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="adminLine">
+       <property name="font">
+        <font>
+         <family>Droid Sans [MONO]</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="tokenLine">
+       <property name="font">
+        <font>
+         <family>Droid Sans [MONO]</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="helpBtn">
+       <property name="text">
+        <string>Помощь</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="OKBtn">
+       <property name="text">
+        <string>OK</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="CloseBtn">
+       <property name="text">
+        <string>Отмена</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>tokenLine</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>VkauthForm</receiver>
+   <slot>OKDisable()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>148</x>
+     <y>34</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>11</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>adminLine</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>VkauthForm</receiver>
+   <slot>OKDisable()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>189</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>296</x>
+     <y>6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>helpBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>VkauthForm</receiver>
+   <slot>help()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>61</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>122</x>
+     <y>103</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>OKBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>VkauthForm</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>202</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>110</x>
+     <y>85</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>CloseBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>VkauthForm</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>293</x>
+     <y>90</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>334</x>
+     <y>81</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>help()</slot>
+  <slot>OKDisable()</slot>
+ </slots>
+</ui>
