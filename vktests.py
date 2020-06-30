@@ -20,7 +20,7 @@ import vk
 v = 5.103
 with open("vk-auth.json") as vkcredsfile:
     vkcreds = json.load(vkcredsfile)
-GROUP_ID = vkcreds["GROUP_ID"]
+#GROUP_ID = vkcreds["GROUP_ID"]
 TOKEN = vkcreds["TOKEN"]
 ADMIN_ID = vkcreds["ADMIN_ID"]
 
@@ -68,7 +68,7 @@ def login():
 
 
 def taking_num_of_msgs(vkapi):
-    num_of_msgs = vkapi.messages.getHistory(group_id=GROUP_ID, start_message_id=-1, peer_id=ADMIN_ID, user_id=ADMIN_ID,
+    num_of_msgs = vkapi.messages.getHistory( start_message_id=-1, peer_id=ADMIN_ID, user_id=ADMIN_ID,
                                             count=1,
                                             offset=0)
     print(num_of_msgs)
@@ -79,7 +79,7 @@ def taking_num_of_msgs(vkapi):
 
 def taking_msgs(vkapi, iter_num, count, offset, data, target_q):
     for _ in range(iter_num):
-        messages = vkapi.messages.getHistory(group_id=GROUP_ID, start_message_id=-1, peer_id=ADMIN_ID,
+        messages = vkapi.messages.getHistory( start_message_id=-1, peer_id=ADMIN_ID,
                                              user_id=ADMIN_ID,
                                              count=count,
                                              offset=offset)
