@@ -1,53 +1,36 @@
 import csv
 import json
+import math
 
 import vk
 
-# from google_export import main_export
-
-# v -- версия API VK
-# GROUP_ID -- айдишник группы
-# TOKEN -- токен доступа группы
-# ADMIN_ID -- айдишник админа, которому присылаются ответы
 
 # vk-auth.json вида:
 # {
-# "GROUP_ID": "",
 # "TOKEN": "",
 # "ADMIN_ID": ""
 # }
-
-v = 5.103
 with open("vk-auth.json") as vkcredsfile:
     vkcreds = json.load(vkcredsfile)
-#GROUP_ID = vkcreds["GROUP_ID"]
 TOKEN = vkcreds["TOKEN"]
 ADMIN_ID = vkcreds["ADMIN_ID"]
+v = 5.103
 
 
 def main():
     data = []
-    offset = 0
-    # offset представляет кол-во обработанных сообщений. По нему определяется сдвиг для нового запроса сообщений
+    vkapi = login(TOKEN)
+    nums = starting_info(vkapi, ADMIN_ID)
+    print(f"Выбранная группа — {nums['grpname']}\nВыбранный админ — {nums['admname']}\nВсего сообщений в диалоге — {nums['num']}")
+    target_q = str(input("Введите любой вопрос из теста, который нужно проверить...\n\tПример вопроса для "
+                         "ввода:\n\t\"Q: У него в сумке лежали учебники для сегодняшних уроков, обед и...\"\n"))
+    # target_q = "Q: У него в сумке лежали учебники для сегодняшних уроков, обед и..."
+    # target_q="тест, епта"
+    data = all_for_msgs(vkapi, data, target_q, ADMIN_ID)
+    if len(data)==0: print("По запросу не найдено результатов")
+    else:output(data)
 
-    print("Логинимся")
-    vkapi = login()
-    print("Получаем кол-во сообщений")
-    nums = taking_num_of_msgs(vkapi)
-    print("Пример вопроса для ввода...")
-    print("Q: У него в сумке лежали учебники для сегодняшних уроков, обед и...")
-    target_q = str(input("Введите любой вопрос из теста, который нужно проверить: "))
-    print("Вытаскиваем ворох сообщений")
-    data, offset = taking_msgs(vkapi, nums["iter_num"], 200, offset, data, target_q)
-    data, offset = taking_msgs(vkapi, 1, nums["plus_iter_num"], offset, data, target_q)
-    print("Ответов на тест --", len(data))
-    print("Сортируем результаты")
-    data = checking_results(data)
-    print("Итоги")
-    print(data)
-    print("Ответов после обработки --", len(data))
-
-    print("Сохраняем в файл")
+def output(data):
     k = int(input(
         "Выберите способ вывода:\n1) *.TXT-файл\n2) *.CSV-файл\n3) Экспорт в сводную таблицу Google (not impl)\n"))
     if k == 1:
@@ -59,60 +42,16 @@ def main():
         print("Брысь отсюда")
         # main_export()
     else:
-        print("Что-то не то ввел.")
+        print("Повторите ввод...")
+        output(data)
 
 
-def login():
-    session = vk.Session(access_token=TOKEN)
-    return vk.API(session, v=v)
-
-
-def taking_num_of_msgs(vkapi):
-    num_of_msgs = vkapi.messages.getHistory( start_message_id=-1, peer_id=ADMIN_ID, user_id=ADMIN_ID,
-                                            count=1,
-                                            offset=0)
-    print(num_of_msgs)
-    iter_num = num_of_msgs["count"] // 200
-    plus_iter_num = num_of_msgs["count"] % 200
-    return {"iter_num": iter_num, "plus_iter_num": plus_iter_num}
-
-
-def taking_msgs(vkapi, iter_num, count, offset, data, target_q):
-    for _ in range(iter_num):
-        messages = vkapi.messages.getHistory( start_message_id=-1, peer_id=ADMIN_ID,
-                                             user_id=ADMIN_ID,
-                                             count=count,
-                                             offset=offset)
-        msg_items = messages["items"]
-
-        k = 0
-        # Определяем индексы начала и конца нужных нам данных, делаем срезы
-        while k <= count - 1:
-            msg_item = msg_items[k]
-            print(k)
-            if msg_item["out"] == 1:
-                msg = msg_item["text"]
-
-                name_start_index = 20
-                name_end_index = msg.find(" vk.com/")
-                id_start_index = msg.find("/id") + 1
-                id_end_index = msg.find("Диалог") - 1
-                score_start_index = msg.find("Набрано баллов ") + 15
-                score_end_index = msg.find(" из ")
-
-                name = msg[name_start_index:name_end_index]
-                id_ = msg[id_start_index:id_end_index]
-                score = msg[score_start_index:score_end_index]
-                # print(score)
-                # score=int(score)
-                if target_q in msg:
-                    data.append([name, id_, score])
-                k += 1
-            else:
-                k += 1
-        offset += count
-    return data, offset
-
+def all_for_msgs(vkapi, data, target_q, ADMIN_ID):
+    data = taking_msgs(vkapi, data, target_q, ADMIN_ID, "search")
+    print(f"Ответов на выбранный тест — {len(data)}")
+    data=checking_results(data)
+    print(f"Ответов после обработки — {len(data)}")
+    return data
 
 def checking_results(data):
     i = 0
@@ -161,6 +100,64 @@ def checking_results(data):
     return data
 
 
+def taking_msgs(vkapi, data, target_q, ADMIN_ID, mode):
+    try:
+        if mode == "search":
+            search_count = vkapi.messages.search(q=target_q, peer_id=ADMIN_ID, count=0)['count']
+            if search_count > 10000: raise TooManyAnswersEx
+        else:
+            # if 'all'
+            search_count = vkapi.messages.getHistory(peer_id=ADMIN_ID, user_id=ADMIN_ID, count=0)['count']
+        offset = 0
+        for _ in range(math.ceil(search_count / 100)):
+            if mode == "search":
+                msgs = vkapi.messages.search(q=target_q, peer_id=ADMIN_ID, count=100, offset=offset)['items']
+            else:
+                # if 'all'
+                msgs = vkapi.messages.getHistory(peer_id=ADMIN_ID, user_id=ADMIN_ID,count=200,offset=offset)['items']
+            offset += len(msgs)
+            msgs_len = len(msgs) - 1
+            while msgs_len != -1:
+                if msgs[msgs_len]["out"] == 1:
+                    msg = msgs[msgs_len]["text"]
+                    name_start_index = 20
+                    name_end_index = msg.find(" vk.com/")
+                    id_start_index = msg.find("/id") + 1
+                    id_end_index = msg.find("Диалог") - 1
+                    score_start_index = msg.find("Набрано баллов ") + 15
+                    score_end_index = msg.find(" из ")
+                    # score_end_index = msg.find("Q")-2
+
+                    name = msg[name_start_index:name_end_index]
+                    id_ = msg[id_start_index:id_end_index]
+                    score = msg[score_start_index:score_end_index]
+                    if target_q in msg:
+                        data.append([name, id_, score])
+                    msgs_len -= 1
+                else:
+                    msgs_len -= 1
+
+
+    except TooManyAnswersEx:
+        data = taking_msgs(vkapi, data, target_q, ADMIN_ID, "all")
+    finally:
+        return data
+
+
+def login(TOKEN):
+    session = vk.Session(access_token=TOKEN)
+    return vk.API(session, v=v)
+
+
+def starting_info(vkapi, ADMIN_ID):
+    num_of_msgs = vkapi.messages.getHistory(peer_id=ADMIN_ID, user_id=ADMIN_ID, count=0)["count"]
+    grpname=vkapi.messages.search(q="Новый ответ в тесте", peer_id=ADMIN_ID, count=1)["items"][0]['from_id']
+    grpname = vkapi.groups.getById(grop_id=grpname)[0]['name']
+    admname = vkapi.users.get(user_ids=ADMIN_ID, name_case="Nom")[0]
+    admname = admname["first_name"] + " " + admname["last_name"]
+    return {"grpname": grpname, "admname": admname, "num": num_of_msgs}
+
+
 def save_to_txt(data):
     with open("test-results.txt", "w") as file:
         for item in data:
@@ -181,6 +178,11 @@ def save_to_csv(data):
 
         for item in data:
             write_file.writerow(item)
+
+
+class TooManyAnswersEx(Exception):
+    """Raised when the number of searched answers exceeds 10,000"""
+    pass
 
 
 if __name__ == "__main__":
