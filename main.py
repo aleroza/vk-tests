@@ -39,7 +39,9 @@ class Window(QMainWindow):
         self._stdout.printOccur.connect(lambda x: self._append_text(x))
 
     def SaveBtn_clicked(self):
-        print("lol")
+        if self.txtCheck.checkState(): vktests.save_to_txt(self.data)
+        if self.csvCheck.checkState(): vktests.save_to_csv(self.data)
+        if self.googleCheck.checkState(): vktests.save_to_google(self.data)
 
     def BtnsDisable(self):
         self.startBtn.setEnabled(False)
@@ -144,6 +146,7 @@ class Window(QMainWindow):
         self.consoleOut.insertPlainText(msg)
         # refresh textedit show, refer) https://doc.qt.io/qt-5/qeventloop.html#ProcessEventsFlag-enum
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+
 
 # Redirecting stdout/stderr output to QEditLine
 # From https://4uwingnet.tistory.com/9

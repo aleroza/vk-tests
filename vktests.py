@@ -4,7 +4,6 @@ import math
 
 import vk
 
-
 # vk-auth.json вида:
 # {
 # "TOKEN": "",
@@ -21,14 +20,18 @@ def main():
     data = []
     vkapi = login(TOKEN)
     nums = starting_info(vkapi, ADMIN_ID)
-    print(f"Выбранная группа — {nums['grpname']}\nВыбранный админ — {nums['admname']}\nВсего сообщений в диалоге — {nums['num']}")
+    print(
+        f"Выбранная группа — {nums['grpname']}\nВыбранный админ — {nums['admname']}\nВсего сообщений в диалоге — {nums['num']}")
     target_q = str(input("Введите любой вопрос из теста, который нужно проверить...\n\tПример вопроса для "
                          "ввода:\n\t\"Q: У него в сумке лежали учебники для сегодняшних уроков, обед и...\"\n"))
     # target_q = "Q: У него в сумке лежали учебники для сегодняшних уроков, обед и..."
     # target_q="тест, епта"
     data = all_for_msgs(vkapi, data, target_q, ADMIN_ID)
-    if len(data)==0: print("По запросу не найдено результатов")
-    else:output(data)
+    if len(data) == 0:
+        print("По запросу не найдено результатов")
+    else:
+        output(data)
+
 
 def output(data):
     k = int(input(
@@ -38,9 +41,7 @@ def output(data):
     elif k == 2:
         save_to_csv(data)
     elif k == 3:
-        # save_to_google(data)
-        print("Брысь отсюда")
-        # main_export()
+        save_to_google(data)
     else:
         print("Повторите ввод...")
         output(data)
@@ -49,9 +50,10 @@ def output(data):
 def all_for_msgs(vkapi, data, target_q, ADMIN_ID):
     data = taking_msgs(vkapi, data, target_q, ADMIN_ID, "search")
     print(f"Ответов на выбранный тест — {len(data)}")
-    data=checking_results(data)
+    data = checking_results(data)
     print(f"Ответов после обработки — {len(data)}")
     return data
+
 
 def checking_results(data):
     i = 0
@@ -114,7 +116,7 @@ def taking_msgs(vkapi, data, target_q, ADMIN_ID, mode):
                 msgs = vkapi.messages.search(q=target_q, peer_id=ADMIN_ID, count=100, offset=offset)['items']
             else:
                 # if 'all'
-                msgs = vkapi.messages.getHistory(peer_id=ADMIN_ID, user_id=ADMIN_ID,count=200,offset=offset)['items']
+                msgs = vkapi.messages.getHistory(peer_id=ADMIN_ID, user_id=ADMIN_ID, count=200, offset=offset)['items']
             offset += len(msgs)
             msgs_len = len(msgs) - 1
             while msgs_len != -1:
@@ -151,7 +153,7 @@ def login(TOKEN):
 
 def starting_info(vkapi, ADMIN_ID):
     num_of_msgs = vkapi.messages.getHistory(peer_id=ADMIN_ID, user_id=ADMIN_ID, count=0)["count"]
-    grpname=vkapi.messages.search(q="Новый ответ в тесте", peer_id=ADMIN_ID, count=1)["items"][0]['from_id']
+    grpname = vkapi.messages.search(q="Новый ответ в тесте", peer_id=ADMIN_ID, count=1)["items"][0]['from_id']
     grpname = vkapi.groups.getById(grop_id=grpname)[0]['name']
     admname = vkapi.users.get(user_ids=ADMIN_ID, name_case="Nom")[0]
     admname = admname["first_name"] + " " + admname["last_name"]
@@ -159,25 +161,37 @@ def starting_info(vkapi, ADMIN_ID):
 
 
 def save_to_txt(data):
-    with open("test-results.txt", "w") as file:
-        for item in data:
-            k = 1
-            for sub_item in item:
-                if k == 1:
-                    file.write("| " + sub_item.ljust(25, " ") + " | ")
-                elif k == 2:
-                    file.write(sub_item.ljust(13, " ") + " | ")
-                else:
-                    file.write(sub_item.ljust(4, " ") + " |\n")
-                k += 1
+    try:
+        with open("test-results.txt", "w") as file:
+            for item in data:
+                k = 1
+                for sub_item in item:
+                    if k == 1:
+                        file.write("| " + sub_item.ljust(25, " ") + " | ")
+                    elif k == 2:
+                        file.write(sub_item.ljust(13, " ") + " | ")
+                    else:
+                        file.write(sub_item.ljust(4, " ") + " |\n")
+                    k += 1
+        print("Вывод в test-results.txt прошел успешно")
+    except Exception:
+        print("Что-то пошло не так...")
 
 
 def save_to_csv(data):
-    with open("test-results.csv", "w") as file:
-        write_file = csv.writer(file, dialect="excel")
+    try:
+        with open("test-results.csv", "w") as file:
+            write_file = csv.writer(file, dialect="excel")
 
-        for item in data:
-            write_file.writerow(item)
+            for item in data:
+                write_file.writerow(item)
+        print("Вывод в test-results.csv прошел успешно")
+    except Exception:
+        print("Что-то пошло не так...")
+
+
+def save_to_google(data):
+    print("Брысь отсюда")
 
 
 class TooManyAnswersEx(Exception):
