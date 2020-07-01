@@ -27,6 +27,7 @@ def main():
     # target_q = "Q: У него в сумке лежали учебники для сегодняшних уроков, обед и..."
     # target_q="тест, епта"
     data = all_for_msgs(vkapi, data, target_q, ADMIN_ID)
+    print(data)
     if len(data) == 0:
         print("По запросу не найдено результатов")
     else:
@@ -84,7 +85,7 @@ def checking_results(data):
     while i + 1 < len(data):
         result_text = data[i]
         result_text = result_text[2]
-        if result_text[0] == "0":
+        if result_text[:1] == "0":
             del data[i]
         else:
             i += 1
@@ -125,10 +126,10 @@ def taking_msgs(vkapi, data, target_q, ADMIN_ID, mode):
                     name_start_index = 20
                     name_end_index = msg.find(" vk.com/")
                     id_start_index = msg.find("/id") + 1
-                    id_end_index = msg.find("Диалог") - 1
+                    id_end_index = msg.find("Диалог:") - 1
                     score_start_index = msg.find("Набрано баллов ") + 15
-                    score_end_index = msg.find(" из ")
-                    # score_end_index = msg.find("Q")-2
+                    #score_end_index = msg.find(" из ")
+                    score_end_index = msg.find("Q: ")-2
 
                     name = msg[name_start_index:name_end_index]
                     id_ = msg[id_start_index:id_end_index]
