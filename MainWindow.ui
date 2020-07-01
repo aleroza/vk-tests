@@ -207,6 +207,12 @@
       <property name="enabled">
        <bool>false</bool>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="font">
        <font>
         <pointsize>12</pointsize>
@@ -221,8 +227,17 @@
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QLabel" name="groupLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>10</pointsize>
@@ -235,6 +250,12 @@
          </item>
          <item>
           <widget class="QLabel" name="adminLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>10</pointsize>
@@ -247,6 +268,12 @@
          </item>
          <item>
           <widget class="QLabel" name="msgsNumLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>10</pointsize>
@@ -261,6 +288,9 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QLabel" name="tipLabel">
            <property name="font">
@@ -274,7 +304,7 @@
 &quot;У него в сумке лежали учебники для сегодняшних уроков, обед и...&quot;</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -299,10 +329,22 @@
               <bool>false</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>133</width>
+               <height>38</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>133</width>
+               <height>38</height>
+              </size>
              </property>
              <property name="font">
               <font>
