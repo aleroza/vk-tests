@@ -1,8 +1,9 @@
+# For catching rsa warnings
+import warnings
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# For catching rsa warnings
-import warnings
 warnings.filterwarnings("error")
 
 

@@ -2,11 +2,10 @@ import csv
 import json
 import math
 import sys
-
-import vk
-
 # Disabling ResourceWarning about unclosed socket
 import warnings
+
+import vk
 
 warnings.simplefilter("ignore", ResourceWarning)
 
