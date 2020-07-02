@@ -22,6 +22,10 @@
   <property name="windowTitle">
    <string>Файл vk-auth.json</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>ico/logo.png</normaloff>ico/logo.png</iconset>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -32,7 +36,7 @@
       <widget class="QLabel" name="tokenLabel">
        <property name="font">
         <font>
-         <family>Droid Sans [MONO]</family>
+         <family>Cantarell Light</family>
          <pointsize>11</pointsize>
         </font>
        </property>
@@ -45,7 +49,7 @@
       <widget class="QLabel" name="adminLabel">
        <property name="font">
         <font>
-         <family>Droid Sans [MONO]</family>
+         <family>Cantarell Light</family>
          <pointsize>11</pointsize>
         </font>
        </property>
@@ -58,7 +62,7 @@
       <widget class="QLineEdit" name="adminLine">
        <property name="font">
         <font>
-         <family>Droid Sans [MONO]</family>
+         <family>Cantarell Light</family>
          <pointsize>11</pointsize>
         </font>
        </property>
@@ -68,7 +72,7 @@
       <widget class="QLineEdit" name="tokenLine">
        <property name="font">
         <font>
-         <family>Droid Sans [MONO]</family>
+         <family>Cantarell Light</family>
          <pointsize>11</pointsize>
         </font>
        </property>
@@ -80,6 +84,11 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="helpBtn">
+       <property name="font">
+        <font>
+         <family>Cantarell Light</family>
+        </font>
+       </property>
        <property name="text">
         <string>Помощь</string>
        </property>
@@ -87,6 +96,11 @@
      </item>
      <item>
       <spacer name="horizontalSpacer">
+       <property name="font">
+        <font>
+         <family>Cantarell Light</family>
+        </font>
+       </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -100,6 +114,11 @@
      </item>
      <item>
       <widget class="QPushButton" name="OKBtn">
+       <property name="font">
+        <font>
+         <family>Cantarell Light</family>
+        </font>
+       </property>
        <property name="text">
         <string>OK</string>
        </property>
@@ -107,6 +126,11 @@
      </item>
      <item>
       <widget class="QPushButton" name="CloseBtn">
+       <property name="font">
+        <font>
+         <family>Cantarell Light</family>
+        </font>
+       </property>
        <property name="text">
         <string>Отмена</string>
        </property>
