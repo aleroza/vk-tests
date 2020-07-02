@@ -1,14 +1,22 @@
 import csv
 import json
 import math
+import sys
 
 import vk
+
+# Disabling ResourceWarning about unclosed socket
+import warnings
+
+warnings.simplefilter("ignore", ResourceWarning)
 
 # vk-auth.json вида:
 # {
 # "TOKEN": "",
 # "ADMIN_ID": ""
 # }
+import google_export
+
 with open("vk-auth.json") as vkcredsfile:
     vkcreds = json.load(vkcredsfile)
 TOKEN = vkcreds["TOKEN"]
@@ -25,9 +33,7 @@ def main():
     target_q = str(input("Введите любой вопрос из теста, который нужно проверить...\n\tПример вопроса для "
                          "ввода:\n\t\"Q: У него в сумке лежали учебники для сегодняшних уроков, обед и...\"\n"))
     # target_q = "Q: У него в сумке лежали учебники для сегодняшних уроков, обед и..."
-    # target_q="тест, епта"
     data = all_for_msgs(vkapi, data, target_q, ADMIN_ID)
-    print(data)
     if len(data) == 0:
         print("По запросу не найдено результатов")
     else:
@@ -35,16 +41,23 @@ def main():
 
 
 def output(data):
-    k = int(input(
-        "Выберите способ вывода:\n1) *.TXT-файл\n2) *.CSV-файл\n3) Экспорт в сводную таблицу Google (not impl)\n"))
-    if k == 1:
-        save_to_txt(data)
-    elif k == 2:
-        save_to_csv(data)
-    elif k == 3:
-        save_to_google(data)
-    else:
-        print("Повторите ввод...")
+    k = -1
+    try:
+        k = int(input(
+            "Выберите способ вывода:\n1) *.TXT-файл\n2) *.CSV-файл\n3) Экспорт в сводную таблицу Google\nВведите 0 "
+            "для выхода\n"))
+        if k == 1:
+            save_to_txt(data)
+        elif k == 2:
+            save_to_csv(data)
+        elif k == 3:
+            status = google_export.main(data)
+            print(status)
+    except Exception as e:
+        print(e)
+        pass
+    finally:
+        if k == 0: sys.exit(0)
         output(data)
 
 
@@ -128,8 +141,8 @@ def taking_msgs(vkapi, data, target_q, ADMIN_ID, mode):
                     id_start_index = msg.find("/id") + 1
                     id_end_index = msg.find("Диалог:") - 1
                     score_start_index = msg.find("Набрано баллов ") + 15
-                    #score_end_index = msg.find(" из ")
-                    score_end_index = msg.find("Q: ")-2
+                    # score_end_index = msg.find(" из ")
+                    score_end_index = msg.find("Q: ") - 2
 
                     name = msg[name_start_index:name_end_index]
                     id_ = msg[id_start_index:id_end_index]
@@ -189,10 +202,6 @@ def save_to_csv(data):
         print("Вывод в test-results.csv прошел успешно")
     except Exception:
         print("Что-то пошло не так...")
-
-
-def save_to_google(data):
-    print("Брысь отсюда")
 
 
 class TooManyAnswersEx(Exception):

@@ -2,15 +2,14 @@ import json
 import sys
 from os import path
 
-import gspread
 import vk
 from PyQt5 import QtGui
 from PyQt5.QtCore import QRegExp, QObject, pyqtSignal, QEventLoop
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
-from oauth2client.service_account import ServiceAccountCredentials
 
+import google_export
 import vktests
 
 
@@ -20,9 +19,12 @@ class Window(QMainWindow):
         QMainWindow.__init__(self)
         loadUi('MainWindow.ui', self)
 
+        self.GauthIco.setPixmap(QtGui.QPixmap("ico/question.png"))
         self.vkdialog = VKauthWindow()
+        self.gsheetdialog = GSheets()
         self.VKauthExists = False
         self.vkauth = {}
+        self.client = []
         self.targetQ = ""
         self.data = []
         self.nums = {}
@@ -41,7 +43,7 @@ class Window(QMainWindow):
     def SaveBtn_clicked(self):
         if self.txtCheck.checkState(): vktests.save_to_txt(self.data)
         if self.csvCheck.checkState(): vktests.save_to_csv(self.data)
-        if self.googleCheck.checkState(): vktests.save_to_google(self.data)
+        if self.googleCheck.checkState(): self.gsheetdialog.show()
 
     def BtnsDisable(self):
         self.startBtn.setEnabled(False)
@@ -62,6 +64,9 @@ class Window(QMainWindow):
         else:
             self.outputBox.setEnabled(True)
 
+    def GSheetsExport(self, sheet_name, wsheet_name):
+        google_export.main_export(self.client, self.data, sheet_name, wsheet_name)
+
     def VKauthExists_get(self):
         return self.VKauthExists
 
@@ -69,34 +74,29 @@ class Window(QMainWindow):
         return self.vkauth
 
     def VKauthBtn_clicked(self):
-        print("VKauthBtn")
         self.vkdialog.show()
         self.vkdialog.load()
 
     def GauthBtn_clicked(self):
-        print("GauthBtn")
         temp = QFileDialog.getOpenFileName(self, None, "", "JSON (*.json)")
         GauthFile = path.basename(temp[0])
         if GauthFile:
-            print(GauthFile)
+            print(f"Выбран {GauthFile}")
             self.GauthTest(GauthFile)
 
     def GauthTest(self, GauthFile):
-        scope = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
-        try:
-            creds = ServiceAccountCredentials.from_json_keyfile_name(GauthFile, scope)
-            client = gspread.authorize(creds)
-            self.GauthLabel.setText("Файл аутентификации Google принят")
-            self.GauthIco.setPixmap(QtGui.QPixmap("ico/tick.png"))
-            self.googleCheck.setEnabled(True)
-        except Exception:
+        self.client = google_export.login(GauthFile)
+        if self.client == -1:
             self.GauthLabel.setText("Файл аутентификации Google не принят")
             self.GauthIco.setPixmap(QtGui.QPixmap("ico/question.png"))
             self.googleCheck.setEnabled(False)
             ErrorMsg(2)
+        else:
+            self.GauthLabel.setText("Файл аутентификации Google принят")
+            self.GauthIco.setPixmap(QtGui.QPixmap("ico/tick.png"))
+            self.googleCheck.setEnabled(True)
 
     def AuthTest(self):
-        global f
         try:
             with open("vk-auth.json") as f:
                 self.vkauth = json.load(f)
@@ -110,11 +110,9 @@ class Window(QMainWindow):
             self.VKauthExists = False
             self.auth_UI([1, 0])
 
-
         except vk.exceptions.VkAPIError:
             self.auth_UI([1, 1])
             ErrorMsg(0)
-
 
         except WrongAdmIDEx:
             self.auth_UI([1, 1])
@@ -170,6 +168,22 @@ class StdoutRedirect(QObject):
     def write(self, s, color="black"):
         sys.stdout.flush()
         self.printOccur.emit(s, color)
+
+
+class GSheets(QDialog):
+    def __init__(self, parent=None):
+        super().__init__()
+        QDialog.__init__(self)
+        loadUi('GSheets.ui', self)
+
+    def OKDisable(self):
+        self.OKBtn.setEnabled(False)
+        if len(self.sheet_name.text()) > 0 and len(self.wsheet_name.text()) > 0:
+            self.OKBtn.setEnabled(True)
+
+    def accept(self):
+        Window.GSheetsExport(myWindow, self.sheet_name.text(), self.wsheet_name.text())
+        self.close()
 
 
 # Dialog for vk-auth.json file generating

@@ -1,37 +1,60 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-data = []
+# For catching rsa warnings
+import warnings
+warnings.filterwarnings("error")
 
-def main_export():
-    print("Ну что, пешка Навального")
-    scope = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("vk-quiz-f13e549a1583.json", scope)
-    client = gspread.authorize(creds)
 
-    sheet = client.open("Auto-Mediika")
-    worksheet = sheet.worksheet("3 сезон 2020")
+def main(data):
+    client = login(None)
+    if client == -1:
+        print("Проверьте файл аутентификации Google")
+        exit()
+    main_export(client, data, None, None)
+
+
+def login(auth_file):
+    client = -1
+    try:
+        if auth_file is None:
+            auth_file = str(input("Введите имя файла аутентификации Google\n"))
+        scope = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name(auth_file, scope)
+        client = gspread.authorize(creds)
+    except Exception:
+        client = -1
+    finally:
+        return client
+
+
+def main_export(client, data, sheet_name, wsheet_name):
+    if sheet_name is None: sheet_name = input("Введите имя файла таблицы")
+    if wsheet_name is None: wsheet_name = input("Введите имя листа таблицы")
+    sheet = client.open(sheet_name)
+    worksheet = sheet.worksheet(wsheet_name)
     sheet_data = worksheet.get_all_values()
 
     max_score = data[0][2]
-    iz_index = max_score.find(" из ")
-    max_score = int(max_score[iz_index + 4:])
+    max_score = int(max_score[max_score.find(" из ") + 4:])
 
     for answer in data:
         index = find_in_sublists(sheet_data, answer[1])
-        print(index)
-        if index == -1: sheet_data.append(answer)
+        iz_index = answer[2].find(" из ")
+        answer[2] = int(answer[2][:iz_index])
+        if index == -1:
+            sheet_data.append(answer)
         else:
-            answer[2] = int(answer[2][:iz_index])
             if index < 5:
                 answer[2] -= max_score - int(answer[2])
-            sheet_data[index][0]=answer[0]
-            sheet_data[index][2]= int(sheet_data[index][2]) + answer[2]
-            print(type(sheet_data[index][2]))
+            if answer[0] != "": sheet_data[index][0] = answer[0]
+            sheet_data[index][2] = int(sheet_data[index][2]) + answer[2]
     worksheet.update(sheet_data, value_input_option="USER_ENTERED")
 
     # Сортируем по убыванию баллов
     worksheet.sort([3, "des"])
+    print("Вывод в облако произведен без ошибок")
+
 
 def find_in_sublists(lst, value):
     for i, sublist in enumerate(lst):
@@ -52,28 +75,3 @@ def find_in_sublists(lst, value):
     #     except gspread.exceptions.CellNotFound:
     #         print("wow, new ppl")
     #         worksheet.insert_row(answer, 2)
-
-    # потом доделать для руры вычитание баллов ошибившихся топов
-    # i = 2
-    # top = []
-    # for i in range(2, 5):
-    #     top.append(worksheet.cell(int(i), 2).value)
-    #
-    # max_score = data[0][2]
-    # iz_index = max_score.find(" из ")
-    # max_score = int(max_score[iz_index + 4:])
-    #
-    # Убераем лишнее из баллов. Можно не убирать, но раскомментировать другой вариант score_end_index.
-    # for item in data:
-    #     sub_item = item[2]
-    #     item[2] = sub_item[:iz_index]
-    #     if item[1] in top:
-    #         print(item[2])
-    #         item[2] = (-max_score + int(item[2]))
-    #         if item[2] == 0: item[2] = max_score
-    #         print(item[1], item[2])
-    #         print(max_score)
-
-
-if __name__ == '__main__':
-    main_export()
