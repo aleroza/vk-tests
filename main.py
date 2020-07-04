@@ -106,7 +106,7 @@ class Window(QMainWindow):
             if self.nums['num'] == 0: raise WrongAdmIDEx
             self.auth_UI([0])
 
-        except IOError:
+        except FileNotFoundError:
             self.VKauthExists = False
             self.auth_UI([1, 0])
 

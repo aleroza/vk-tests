@@ -16,14 +16,20 @@ warnings.simplefilter("ignore", ResourceWarning)
 # }
 import google_export
 
-with open("vk-auth.json") as vkcredsfile:
-    vkcreds = json.load(vkcredsfile)
-TOKEN = vkcreds["TOKEN"]
-ADMIN_ID = vkcreds["ADMIN_ID"]
 v = 5.103
 
 
 def main():
+    try:
+        with open("vk-auth.json") as vkcredsfile:
+            vkcreds = json.load(vkcredsfile)
+        TOKEN = vkcreds["TOKEN"]
+        ADMIN_ID = vkcreds["ADMIN_ID"]
+    except FileNotFoundError:
+        print("Файл аутентификации не найден")
+        sys.exit(1)
+
+
     data = []
     vkapi = login(TOKEN)
     nums = starting_info(vkapi, ADMIN_ID)
@@ -33,6 +39,7 @@ def main():
                          "ввода:\n\t\"Q: У него в сумке лежали учебники для сегодняшних уроков, обед и...\"\n"))
     # target_q = "Q: У него в сумке лежали учебники для сегодняшних уроков, обед и..."
     data = all_for_msgs(vkapi, data, target_q, ADMIN_ID)
+    print(data)
     if len(data) == 0:
         print("По запросу не найдено результатов")
     else:
